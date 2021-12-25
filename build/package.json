@@ -1,0 +1,14 @@
+{
+  "name": "wasm-worker-memory-test",
+  "collaborators": [
+    "Saksama Terminal <saksama@localhost.localdomain>"
+  ],
+  "version": "0.1.0",
+  "files": [
+    "wasm_worker_memory_test_bg.wasm",
+    "wasm_worker_memory_test.js",
+    "wasm_worker_memory_test.d.ts"
+  ],
+  "main": "wasm_worker_memory_test.js",
+  "types": "wasm_worker_memory_test.d.ts"
+}

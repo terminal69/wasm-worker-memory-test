@@ -1,0 +1,5 @@
+[target.wasm32-unknown-unknown]
+rustflags = [
+  "-C",
+  "link-args=--import-memory --initial-memory=1114112 --max-memory=1114112",
+]

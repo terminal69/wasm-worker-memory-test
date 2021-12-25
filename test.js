@@ -1,6 +1,6 @@
 const { isMainThread, Worker } = require("worker_threads");
 const { setTimeout } = require("timers/promises");
-const rust = require("./pkg");
+const rust = require("./build");
 
 const NO_WORKERS = 1000;
 const WORKER_CREATION_INTERVAL = 1000;

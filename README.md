@@ -4,10 +4,25 @@ wasm-pack 0.10.2
 rustc 1.57.0 (stable)
 nodejs 16.13.1
 
-### 🛠️ Build with `wasm-pack build`
+### 🛠️ Pre-built
+
+Added the following to .cargo/config.toml to allow importing memory
+
+```
+[target.wasm32-unknown-unknown]
+rustflags = [
+  "-C",
+  "link-args=--import-memory --initial-memory=1114112 --max-memory=1114112",
+]
+```
 
 ```
 wasm-pack build --target nodejs
+```
+
+Edited line 3 in wasm_worker_memory_test.js to
+```
+imports["env"] = { memory: new WebAssembly.Memory({ initial: 17, maximum: 17 }) };
 ```
 
 ### Test with NodeJS
@@ -24,8 +39,34 @@ Starting worker 2
 
 Run `htop -p <PID>`
 
-Virtual memory usage is about 10G per worker, once it gets to 1000G (about 100 workers), resident is still under 500M, process crashes with the following error
+The result is the similar, virtual memory usage is about 10G per worker, once it gets to 1000G (about 100 workers), resident is still under 500M, process crashes with the following error
 
+```
+...
+Starting worker 100
+Starting worker 101
+
+node:events:346
+      throw er; // Unhandled 'error' event
+      ^
+RangeError [Error]: WebAssembly.Memory(): could not allocate memory
+    at Object.<anonymous> (/home/stk/wasm-worker-memory-test/build/wasm_worker_memory_test.js:3:28)
+    at Module._compile (node:internal/modules/cjs/loader:1092:14)
+    at Object.Module._extensions..js (node:internal/modules/cjs/loader:1121:10)
+    at Module.load (node:internal/modules/cjs/loader:972:32)
+    at Function.Module._load (node:internal/modules/cjs/loader:813:14)
+    at Module.require (node:internal/modules/cjs/loader:996:19)
+    at require (node:internal/modules/cjs/helpers:92:18)
+    at Object.<anonymous> (/home/stk/wasm-worker-memory-test/test.js:3:14)
+    at Module._compile (node:internal/modules/cjs/loader:1092:14)
+    at Object.Module._extensions..js (node:internal/modules/cjs/loader:1121:10)
+Emitted 'error' event on process instance at:
+    at emitUnhandledRejectionOrErr (node:internal/event_target:639:11)
+    at MessagePort.[nodejs.internal.kHybridDispatch] (node:internal/event_target:464:9)
+    at MessagePort.exports.emitMessage (node:internal/per_context/messageport:23:28)
+```
+
+The previous error (commit 8a6d3f) was
 ```
 node:internal/event_target:777
   process.nextTick(() => { throw err; });
