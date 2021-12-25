@@ -58,6 +58,68 @@ Emitted 'error' event on process instance at:
     at MessagePort.exports.emitMessage (node:internal/per_context/messageport:23:28)
 ```
 
+Test 1(b)
+Importing memory
+
+```
+...
+Starting worker 100
+Starting worker 101
+
+node:events:346
+      throw er; // Unhandled 'error' event
+      ^
+RangeError [Error]: WebAssembly.Memory(): could not allocate memory
+    at instantiate (/home/stk/wasm-worker-memory-test/test1b.js:9:16)
+Emitted 'error' event on process instance at:
+    at emitUnhandledRejectionOrErr (node:internal/event_target:639:11)
+    at MessagePort.[nodejs.internal.kHybridDispatch] (node:internal/event_target:464:9)
+    at MessagePort.exports.emitMessage (node:internal/per_context/messageport:23:28)
+```
+
+Test 1(c)
+Importing memory, running in main thread only
+
+```
+...
+Starting wasm 101
+Starting wasm 102
+/home/stk/wasm-worker-memory-test/test1c.js:8
+    js: { mem: new WebAssembly.Memory({ initial: 1, maximum: 1 }) },
+               ^
+
+RangeError: WebAssembly.Memory(): could not allocate memory
+    at instantiate (/home/stk/wasm-worker-memory-test/test1c.js:8:16)
+    at async /home/stk/wasm-worker-memory-test/test1c.js:28:17
+```
+
+Test 1(d)
+Importing memory, single wasm instance, shows 10GB of virtual memory usage
+
+Initial
+```
+top - 14:39:55 up 7 days, 23:46,  1 user,  load average: 0.55, 0.54, 0.54
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.8 us,  0.4 sy,  0.0 ni, 97.9 id,  0.0 wa,  0.0 hi,  0.8 si,  0.0 st
+MiB Mem : 15402.37+total, 5126.367 free, 8363.969 used, 1912.039 buff/cache
+MiB Swap: 29619.99+total, 23604.74+free, 6015.250 used. 6547.137 avail Mem
+
+  PID USER        VIRT    RES    SHR S  %CPU  %MEM     TIME+ nTH  P NU COMMAND
+21446 stk       320120  35452  28720 S 0.000 0.225   0:00.02   7  8  0 node
+```
+
+After loading wasm
+```
+top - 14:39:57 up 7 days, 23:46,  1 user,  load average: 0.58, 0.55, 0.55
+Tasks:   1 total,   0 running,   1 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  1.2 us,  0.8 sy,  0.0 ni, 97.5 id,  0.0 wa,  0.0 hi,  0.4 si,  0.0 st
+MiB Mem : 15402.37+total, 5120.777 free, 8368.148 used, 1913.449 buff/cache
+MiB Swap: 29619.99+total, 23604.74+free, 6015.250 used. 6542.773 avail Mem
+
+  PID USER        VIRT    RES    SHR S  %CPU  %MEM     TIME+ nTH  P NU COMMAND
+21446 stk      10.556g  35452  28720 S 0.000 0.225   0:00.02   7  8  0 node
+```
+
 ### Second test
 
 This shows that we are able to start way more than 100 workers when the workers are not doing anything but waiting for a timeout
