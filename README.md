@@ -150,10 +150,10 @@ Aborted (core dumped)
 
 Run `node test3.js`
 
-Similar to test 2, however we also instantiate a WebAssembly memory with initial size of 17 pages in each worker (equal to what is required by our wasm-pack example)
+Similar to test 2, however we also instantiate a WebAssembly memory with initial size of 1 page in each worker
 
 ```
-const memory = new WebAssembly.Memory({ initial: 17 });
+const memory = new WebAssembly.Memory({ initial: 1 });
 ```
 
 This ends with
@@ -163,35 +163,29 @@ This ends with
 Starting worker 1631
 Starting worker 1632
 
+<--- Last few GCs --->
 
-#
-# Fatal error in , line 0
-# Check failed: ReleasePages(page_allocator_, reinterpret_cast<void*>(region_.begin()), old_size, region_.size()).
-#
-#
-#
-#FailureMessage Object: 0x7fd2b26f9c00
- 1: 0xaf8b71  [node]
- 2: 0x1b04234 V8_Fatal(char const*, ...) [node]
- 3: 0x1212649  [node]
- 4: 0xe9cbbd v8::internal::MemoryAllocator::PartialFreeMemory(v8::internal::BasicMemoryChunk*, unsigned long, unsigned long, unsigned long) [node]
- 5: 0xec53f0 v8::internal::Page::ShrinkToHighWaterMark() [node]
- 6: 0xeb1d48 v8::internal::PagedSpace::ShrinkImmortalImmovablePages() [node]
- 7: 0xe3ea88 v8::internal::Heap::NotifyDeserializationComplete() [node]
- 8: 0xde77b2 v8::internal::Isolate::Init(v8::internal::ReadOnlyDeserializer*, v8::internal::StartupDeserializer*) [node]
- 9: 0x1204def  [node]
-10: 0xca0518 v8::Isolate::Initialize(v8::Isolate*, v8::Isolate::CreateParams const&) [node]
-11: 0xb51612 node::worker::Worker::Run() [node]
-12: 0xb529c8  [node]
-13: 0x7fd74ab46427  [/lib64/libc.so.6]
-14: 0x7fd74abcf810  [/lib64/libc.so.6]
-Illegal instruction (core dumped)
+
+<--- JS stacktrace --->
+
+FATAL ERROR: Committing semi space failed. Allocation failed - JavaScript heap out of memory
+ 1: 0xa89e60 node::Abort() [node]
+ 2: 0x9ade29 node::FatalError(char const*, char const*) [node]
+ 3: 0xc7583e v8::Utils::ReportOOMFailure(v8::internal::Isolate*, char const*, bool) [node]
+ 4: 0xc75bb7 v8::internal::V8::FatalProcessOutOfMemory(v8::internal::Isolate*, char const*, bool) [node]
+ 5: 0xe3f6d5  [node]
+ 6: 0xe4ec18  [node]
+ 7: 0xe5190c v8::internal::Heap::AllocateRawWithRetryOrFailSlowPath(int, v8::internal::AllocationType, v8::internal::AllocationOrigin, v8::internal::AllocationAlignment) [node]
+ 8: 0xe157da v8::internal::Factory::NewFillerObject(int, bool, v8::internal::AllocationType, v8::internal::AllocationOrigin) [node]
+ 9: 0x116d4ab v8::internal::Runtime_AllocateInYoungGeneration(int, unsigned long*, v8::internal::Isolate*) [node]
+10: 0x15045f9  [node]
+Aborted (core dumped)
 ```
 
-If we set the maximum number of memory pages to 17
+If we set the maximum number of memory pages to 1
 
 ```
-const memory = new WebAssembly.Memory({ initial: 17, maximum: 17 });
+const memory = new WebAssembly.Memory({ initial: 1, maximum: 1 });
 ```
 
 Run `node test3a.js`
@@ -205,7 +199,7 @@ Starting worker 1631
 
 <--- Last few GCs --->
 
-[26143:0x7f4e4ca0ff90]       37 ms: Scavenge 2.6 (3.8) -> 2.2 (4.3) MB, 0.8 / 0.0 ms  (average mu = 1.000, current mu = 1.000) allocation failure
+[10466:0x7f58a4abcaa0]       18 ms: Scavenge 2.6 (3.8) -> 2.2 (4.3) MB, 0.7 / 0.0 ms  (average mu = 1.000, current mu = 1.000) allocation failure
 
 
 <--- JS stacktrace --->

@@ -16,7 +16,7 @@ if (isMainThread) {
     }
   })();
 } else {
-  const memory = new WebAssembly.Memory({ initial: 17 });
+  const memory = new WebAssembly.Memory({ initial: 1 });
   setTimeout(WORKER_END_INTERVAL).then(() => {
     console.log(`Worker end`);
   });
