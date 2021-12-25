@@ -1,14 +1,7 @@
-Tested using
+Another approach, minimal WebAssembly using the guide at https://blog.scottlogic.com/2018/04/26/webassembly-by-hand.html
 
-wasm-pack 0.10.2
-rustc 1.57.0 (stable)
-nodejs 16.13.1
-
-### 🛠️ Build with `wasm-pack build`
-
-```
-wasm-pack build --target nodejs
-```
+Converted from wat to wasm using https://github.com/wasmerio/vscode-wasm v1.3.1
+Run using nodejs 16.13.1
 
 ### Test with NodeJS
 
@@ -24,28 +17,44 @@ Starting worker 2
 
 Run `htop -p <PID>`
 
-Virtual memory usage is about 10G per worker, once it gets to 1000G (about 100 workers), resident is still under 500M, process crashes with the following error
+Virtual memory usage is minimal, hello.wasm does not instantiate wasm memory. Ends eventually due to
 
 ```
-node:internal/event_target:777
-  process.nextTick(() => { throw err; });
-                           ^
-RangeError [Error]: WebAssembly.Instance(): Out of memory: wasm memory
-    at Object.<anonymous> (/home/stk/wasm-worker-memory-test/pkg/wasm_worker_memory_test.js:93:22)
-    at Module._compile (node:internal/modules/cjs/loader:1101:14)
-    at Object.Module._extensions..js (node:internal/modules/cjs/loader:1153:10)
-    at Module.load (node:internal/modules/cjs/loader:981:32)
-    at Function.Module._load (node:internal/modules/cjs/loader:822:12)
-    at Module.require (node:internal/modules/cjs/loader:1005:19)
-    at require (node:internal/modules/cjs/helpers:102:18)
-    at Object.<anonymous> (/home/stk/wasm-worker-memory-test/test.js:3:14)
-    at Module._compile (node:internal/modules/cjs/loader:1101:14)
-    at Object.Module._extensions..js (node:internal/modules/cjs/loader:1153:10)
-Emitted 'error' event on Worker instance at:
-    at Worker.[kOnErrorMessage] (node:internal/worker:289:10)
-    at Worker.[kOnMessage] (node:internal/worker:300:37)
-    at MessagePort.<anonymous> (node:internal/worker:201:57)
-    at MessagePort.[nodejs.internal.kHybridDispatch] (node:internal/event_target:562:20)
+...
+Starting worker 1637
+Starting worker 1638
+
+<--- Last few GCs --->
+
+[3091:0x7fb5e4a79b70]       18 ms: Scavenge 2.6 (3.8) -> 2.2 (4.6) MB, 1.3 / 0.0 ms  (average mu = 1.000, current mu = 1.000) allocation failure
+[3091:0x7fb5e4a79b70]     8132 ms: Mark-sweep (reduce) 3.4 (4.8) -> 1.8 (4.1) MB, 1.6 / 0.0 ms  (+ 1.2 ms in 6 steps since start of marking, biggest step 0.3 ms, walltime since start of marking 3 ms) (average mu = 1.000, current mu = 1.000) finalize incre
+
+<--- JS stacktrace --->
+
+FATAL ERROR: MarkCompactCollector: young object promotion failed Allocation failed - JavaScript heap out of memory
+Segmentation fault (core dumped)
+```
+
+Test 1(a)
+memory.wasm initialises a single page memory (64kb) and exports it
+
+Run `node test1a.js`
+
+Even with this minimal implementation, we still run out of virtual memory
+
+```
+...
+Starting worker 100
+Starting worker 101
+
+node:events:346
+      throw er; // Unhandled 'error' event
+      ^
+RangeError [Error]: WebAssembly.instantiate(): Out of memory: wasm memory
+    at instantiate (/home/stk/wasm-worker-memory-test/test1a.js:8:38)
+Emitted 'error' event on process instance at:
+    at emitUnhandledRejectionOrErr (node:internal/event_target:639:11)
+    at MessagePort.[nodejs.internal.kHybridDispatch] (node:internal/event_target:464:9)
     at MessagePort.exports.emitMessage (node:internal/per_context/messageport:23:28)
 ```
 

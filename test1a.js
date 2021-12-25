@@ -3,7 +3,7 @@ const { isMainThread, Worker } = require("worker_threads");
 const { setTimeout } = require("timers/promises");
 
 const instantiate = async () => {
-  const buffer = readFileSync("./hello.wasm");
+  const buffer = readFileSync("./memory.wasm");
   const module = await WebAssembly.compile(buffer);
   const instance = await WebAssembly.instantiate(module);
   return instance.exports;
